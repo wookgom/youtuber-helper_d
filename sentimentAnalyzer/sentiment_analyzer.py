@@ -14,7 +14,7 @@ load_dotenv()
 
 
 class SentimentAnalyzer:
-    """Gemini API를 사용한 감정 분석 클래스"""
+    """감정 분석 클래스"""
 
     def __init__(self, api_key: str = None, temperature: float = 0.1):
         """
@@ -66,7 +66,7 @@ Response format:
 
 Rules:
 - The sum of the three values ​​must be 100.
-- Only display up to the first decimal place.
+- Only display up to the second decimal place.
 - Respond only in JSON format.
 """
 
