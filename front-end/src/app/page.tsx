@@ -124,7 +124,6 @@ export default function Home() {
         <div className="h-6 w-48 bg-gray-200 rounded-lg" />
       </div>
       <div className="animate-pulse h-64 w-full bg-gray-200 rounded-lg" />
-      <p className="text-gray-500 mt-4">채팅 데이터를 분석 중입니다...</p>
     </motion.div>
   );
 
@@ -165,11 +164,9 @@ export default function Home() {
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
-
         {latest && (
           <p className="text-gray-700 font-semibold mt-2">
-            시간: {latest.time} → 긍정: {latest.positive}% | 보통:{" "}
-            {latest.neutral}% | 부정: {latest.negative}%
+            {latest.time}
           </p>
         )}
       </div>
