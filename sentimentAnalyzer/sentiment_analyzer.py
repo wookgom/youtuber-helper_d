@@ -9,9 +9,7 @@ from typing import List, Dict
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# .env 파일에서 환경변수 로드
 load_dotenv()
-
 
 class SentimentAnalyzer:
     """감정 분석 클래스"""
@@ -51,7 +49,6 @@ class SentimentAnalyzer:
         # 메시지들을 번호와 함께 텍스트로 변환
         messages_text = "\n".join([f"{i+1}. {msg}" for i, msg in enumerate(messages)])
 
-        # Gemini에게 전달할 프롬프트 구성
         prompt = f"""Please classify the following streaming chat messages as positive, negative, or neutral, and calculate the percentage of each sentiment among all messages.
 
 Chat messages:
@@ -110,23 +107,3 @@ Rules:
             raise ValueError(f"Gemini API 응답을 JSON으로 파싱할 수 없습니다: {e}")
         except Exception as e:
             raise RuntimeError(f"감정 분석 중 오류 발생: {e}")
-
-    def analyze_and_export(self, messages: List[str], output_file: str = None) -> Dict[str, float]:
-        """
-        감정 분석을 수행하고 결과를 JSON 파일로 저장
-
-        Args:
-            messages: 분석할 채팅 메시지 리스트
-            output_file: 결과를 저장할 JSON 파일 경로 (None일 경우 저장하지 않음)
-
-        Returns:
-            감정 비율 딕셔너리
-        """
-        result = self.analyze_messages(messages)
-
-        if output_file:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
-            print(f"결과가 {output_file}에 저장되었습니다.")
-
-        return result
