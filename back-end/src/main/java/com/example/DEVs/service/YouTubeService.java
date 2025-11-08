@@ -7,14 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +23,6 @@ public class YouTubeService {
 
     private Instant liveStartTime;
 
-    private final Map<String, Boolean> streamRunning = new ConcurrentHashMap<>();
 
     // JSON 가져오기 전용 메소드
     protected String fetchJsonFromUrl(String url) {
@@ -38,7 +33,7 @@ public class YouTubeService {
                 .block();
     }
 
-    public String fetchActiveLiveChatId(String videoId) {
+    private String fetchActiveLiveChatId(String videoId) {
         try {
             String url = String.format("/videos?part=liveStreamingDetails&id=%s&key=%s", videoId, apiKey);
             String json = fetchJsonFromUrl(url);
@@ -57,7 +52,7 @@ public class YouTubeService {
         }
     }
 
-    public List<Chat> fetchLiveChatMessages(String chatId, String videoId, long collectStartTime) {
+    private List<Chat> fetchLiveChatMessages(String chatId, String videoId) {
         List<Chat> chats = new ArrayList<>();
 
         try {
@@ -73,74 +68,39 @@ public class YouTubeService {
             items.forEach(item -> {
                 long publishTime = Instant.parse(item.path("snippet").path("publishedAt").asText()).toEpochMilli();
 
-                // ✅ collectLiveChat 시작 이후 메시지만 수집
-                if (publishTime > collectStartTime) {
-                    Chat chat = new Chat();
-                    chat.setVideoId(videoId);
-                    chat.setAuthor(item.path("authorDetails").path("displayName").asText());
-                    chat.setText(item.path("snippet").path("displayMessage").asText());
-                    chat.setPublishedAt(new YouTubeHtmlParser().formatTime(publishTime - liveStartTime.toEpochMilli()));
-                    chats.add(chat);
-                }
+                Chat chat = new Chat();
+                chat.setVideoId(videoId);
+                chat.setAuthor(item.path("authorDetails").path("displayName").asText());
+                chat.setText(item.path("snippet").path("displayMessage").asText());
+                chat.setPublishedAt(formatTime(publishTime - liveStartTime.toEpochMilli()));
+                chats.add(chat);
             });
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return chats;
     }
 
-    /*
-    *
-    * Sse를 사용한 통신
-    *
-    * */
-    public SseEmitter startLiveStream(String videoId) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        streamRunning.put(videoId, true);
+    public Instant collectLiveChat(String videoId, int durationSeconds) {
+        String chatId = fetchActiveLiveChatId(videoId);
+        if (chatId == null || chatId.isEmpty()) return null;
 
-        new Thread(() -> {
+        long end = System.currentTimeMillis() + durationSeconds * 1000L;
+
+        while (System.currentTimeMillis() < end) {
+            fetchLiveChatMessages(chatId, videoId).forEach(chatRepository::save);
             try {
-                String liveChatId = fetchActiveLiveChatId(videoId);
-                if (liveChatId == null) {
-                    emitter.send(SseEmitter.event().data("❌ Live chat not found"));
-                    emitter.complete();
-                    return;
-                }
-
-                while (streamRunning.get(videoId)) {
-
-//                    long endTime = System.currentTimeMillis() + (5 * 60 * 1000L);
-                    long endTime = System.currentTimeMillis() + (5 * 1000L);
-                    List<Chat> collected = new ArrayList<>();
-
-                    // 5분 동안 계속 수집
-                    while (System.currentTimeMillis() < endTime && streamRunning.get(videoId)) {
-                        List<Chat> freshChats = fetchLiveChatMessages(liveChatId, videoId, System.currentTimeMillis());
-                        freshChats.forEach(chatRepository::save);
-                        collected.addAll(freshChats);
-
-                        Thread.sleep(5000);
-                    }
-
-                    // 5분 수집 끝 → 데이터 SSE로 전송
-                    emitter.send(SseEmitter.event().name("chat").data(collected));
-                }
-
-                emitter.send(SseEmitter.event().data("✅ Stream stopped"));
-                emitter.complete();
-
-            } catch (Exception e) {
-                emitter.completeWithError(e);
+                Thread.sleep(5000);
+            } catch (InterruptedException ignored) {
             }
-
-        }).start();
-
-        return emitter;
+        }
+        return this.liveStartTime;
     }
 
-    public void stopLiveStream(String videoId) {
-        streamRunning.put(videoId, false);
+    public String formatTime(long ms) {
+        long hh = ms / 3600_000;
+        long mm = (ms % 3600_000) / 60_000;
+        long ss = (ms % 60_000) / 1000;
+        return String.format("%02d:%02d:%02d", hh, mm, ss);
     }
 }
