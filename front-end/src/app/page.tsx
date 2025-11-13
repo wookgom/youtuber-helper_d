@@ -165,9 +165,7 @@ export default function Home() {
           </ResponsiveContainer>
         </motion.div>
         {latest && (
-          <p className="text-gray-700 font-semibold mt-2">
-            {latest.time}
-          </p>
+          <p className="text-gray-700 font-semibold mt-2">{latest.time}</p>
         )}
       </div>
 
@@ -218,38 +216,112 @@ export default function Home() {
   );
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-10 bg-gray-50">
-      <div className="flex gap-3 mb-8">
-        <input
-          type="text"
-          placeholder="채널 ID를 입력하세요"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          className="border rounded-lg p-2 w-72"
-          disabled={!!channel}
-        />
-        {!channel ? (
-          <button
-            onClick={handleStart}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+    <main className="flex flex-col items-center justify-center min-h-screen p-10 relative overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative z-0 w-full max-w-4xl"
+      >
+        <div className="text-center mb-12">
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="text-5xl font-bold text-black mb-3"
           >
-            분석 시작
-          </button>
-        ) : (
-          <button
-            onClick={handleStop}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+            실시간 감성 분석
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-gray-600 text-lg"
           >
-            분석 중단
-          </button>
-        )}
-      </div>
+            1분마다 새 데이터가 갱신됩니다.
+          </motion.p>
+        </div>
 
-      <div className="w-full max-w-3xl">
-        <AnimatePresence mode="wait">
-          {!hasData ? <Skeleton /> : <SentimentCharts />}
-        </AnimatePresence>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-2xl p-8 mb-8 border border-white/20"
+        >
+          <div className="flex gap-4">
+            <input
+              type="text"
+              placeholder="채널 ID를 입력하세요"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="flex-1 border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!!channel}
+            />
+            {!channel ? (
+              <button
+                onClick={handleStart}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                분석 시작
+              </button>
+            ) : (
+              <button
+                onClick={handleStop}
+                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                분석 중단
+              </button>
+            )}
+          </div>
+          {channel && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-4 flex items-center gap-2 text-sm text-gray-600"
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              분석 중:{" "}
+              <span className="font-semibold text-green-500">{channel}</span>
+            </motion.div>
+          )}
+        </motion.div>
+
+        <motion.div
+          key="chart-container"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20"
+        >
+          <AnimatePresence mode="wait">
+            {!hasData ? <Skeleton /> : <SentimentCharts />}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%,
+          100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </main>
   );
 }
