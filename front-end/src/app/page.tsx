@@ -105,7 +105,7 @@ export default function Home() {
   const chartData = latest
     ? [
         { name: "긍정", value: latest.positive },
-        { name: "보통", value: latest.neutral },
+        { name: "중립", value: latest.neutral },
         { name: "부정", value: latest.negative },
       ]
     : [];
