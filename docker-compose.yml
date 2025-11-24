@@ -1,4 +1,10 @@
 services:
+  frontend:
+    build: ./front-end
+    ports:
+      - "3000:3000"
+    restart: always
+
   backend:
     build: ./back-end
     ports:
