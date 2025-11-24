@@ -6,7 +6,9 @@ services:
     restart: always
 
   backend:
-    build: ./back-end
+    build:
+      context: .
+      dockerfile: back-end/Dockerfile
     ports:
       - "8080:8080"
     environment:
