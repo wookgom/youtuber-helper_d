@@ -9,7 +9,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
-      - db`
+      db:
+        condition: service_healthy
     restart: always
 
   db:
@@ -22,4 +23,9 @@ services:
       - "5432:5432"
     volumes:
       - ./db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d devs" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
