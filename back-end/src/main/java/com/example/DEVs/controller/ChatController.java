@@ -19,7 +19,6 @@ public class ChatController {
     private final PyAnalyzeService pyAnalService;
     private final SentimentRepository sentimentRepository;
 
-
     /**
      * 특정 비디오 ID의 라이브 채팅을 수집하고 DB에 저장
      * youtube api 사용
@@ -36,7 +35,8 @@ public class ChatController {
         try {
             long collectStartTime = Instant.now().toEpochMilli();
             Instant liveStartTime = youTubeService.collectLiveChat(videoId, durationSeconds);
-            collectStartTime -= liveStartTime.toEpochMilli();
+            // 라이브 시작 시간 차감 및 1분 버퍼(60000ms) 추가
+            collectStartTime -= (liveStartTime.toEpochMilli() + 60000);
 
             Sentiment sentiment = pyAnalService.runSentimentAnalyzer(videoId, collectStartTime);
             sentimentRepository.save(sentiment);

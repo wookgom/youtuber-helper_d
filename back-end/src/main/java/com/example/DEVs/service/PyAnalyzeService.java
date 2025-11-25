@@ -34,7 +34,16 @@ public class PyAnalyzeService {
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
-        System.out.println(cmd);
+        System.out.println("Running Python command: " + cmd);
+
+        // Python 스크립트의 출력을 읽어서 로그에 출력
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println("[Python] " + line);
+            }
+        }
 
         int exitCode = process.waitFor();
         if (exitCode != 0) {
