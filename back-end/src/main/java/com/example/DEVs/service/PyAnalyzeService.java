@@ -21,14 +21,13 @@ public class PyAnalyzeService {
 
         List<String> cmd = new ArrayList<>();
         String analyzeTime = formatTime(collectStartTime);
-        cmd.add("python");
+        cmd.add("python3");
         cmd.add(SCRIPT_PATH);
         cmd.add("--where");
         String where = String.format(
                 "video_id = '%s' AND published_at >= '%s'",
                 videoId,
-                analyzeTime
-        );
+                analyzeTime);
         cmd.add(where);
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -67,5 +66,3 @@ public class PyAnalyzeService {
         return String.format("%02d:%02d:%02d", hh, mm, ss);
     }
 }
-
-
